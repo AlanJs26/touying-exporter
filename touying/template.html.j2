@@ -136,6 +136,7 @@
       */
       .impress-console.slideView #impress-help {
         display: none;
+        user-select: none;
       }
 
       /*
@@ -261,7 +262,7 @@
           transition:         opacity 0.0s;
       }
 
-      .impress-enabled .step.active { opacity: 1 }
+      .impress-enabled .step.active { opacity: 1; z-index: 99; }
 
       /*
           These 'slide' step styles were heavily inspired by HTML5 Slides:
@@ -329,10 +330,11 @@
 
           So use it wisely ... or don't use at all.
       */
-      .impress-enabled                          { pointer-events: none }
-      .impress-enabled #impress                 { pointer-events: auto }
-      .impress-enabled #impress-toolbar         { pointer-events: auto }
-      .impress-enabled #impress-console-button  { pointer-events: auto }
+      .impress-enabled                              { pointer-events: none }
+      .impress-enabled #impress                     { pointer-events: auto }
+      .impress-enabled #impress-toolbar             { pointer-events: auto; user-select: none; }
+      .fullscreen #impress-toolbar { display: none!important; }
+      .impress-enabled #impress-console-button      { pointer-events: auto }
 
     </style>
     
@@ -359,7 +361,9 @@
     This fallback message is only visible when there is `impress-not-supported` class on body.
 -->
 <div class="fallback-message">
-    <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
+      Loading...
+      
+    If this message persists, <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
     <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
 </div>
 
@@ -383,7 +387,9 @@
     {% for page_no in page_iter %}
     <div class="step slide">
       {# insert svg image #}
+        <a href="#/step-{{ (page_no+1) % count + 1 }}">
       {{ images[page_no] | safe }}
+        </a>
       {# add note #}
       {% if page_no in idx2note %}
       <div class="notes"><div style="white-space: pre-wrap;">{{ idx2note[page_no] }}</div></div>
@@ -406,6 +412,19 @@
 <div id="impress-help"></div>
 
 {% raw %}
+
+<script>
+const query = window.matchMedia('(display-mode: fullscreen)')
+
+query.addEventListener('change', ({ matches }) => {
+    if (matches) {
+      document.body.classList.add("fullscreen")
+    } else {
+      document.body.classList.remove("fullscreen")
+    }
+});
+</script>
+
 <!--
     To make all described above really work, you need to include impress.js in the page.
     You also need to call a `impress().init()` function to initialize impress.js presentation.

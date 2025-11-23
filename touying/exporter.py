@@ -13,13 +13,21 @@ FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 def to_html(
-    input, root=None, font_paths=[], output=None, start_page=1, count=None, silent=False, sys_inputs={}
+    input,
+    root=None,
+    font_paths=[],
+    output=None,
+    start_page=1,
+    count=None,
+    silent=False,
+    sys_inputs={},
 ):
     if not silent:
         print(f"Compiling typst source file {input}...")
-    
-    images = typst.compile(input, root=root, font_paths=font_paths,
-                           format="svg", sys_inputs=sys_inputs)
+
+    images = typst.compile(
+        input, root=root, font_paths=font_paths, format="svg", sys_inputs=sys_inputs
+    )
     if type(images) is not list:
         images = [images]
 
@@ -28,9 +36,13 @@ def to_html(
     # replace width="[0-9\.]+pt" height="[0-9\.]+pt" with width="100%" height="100%"
     images = [
         re.sub(
-            r'width="([0-9\.]+)pt" height="([0-9\.]+)pt"',
-            'width="100%" height="100%"',
-            image,
+            r"<a(.+?)href\=",
+            r'<a \1 target="_blank" href=',
+            re.sub(
+                r'width="([0-9\.]+)pt" height="([0-9\.]+)pt"',
+                'width="100%" height="100%"',
+                image,
+            ),
         )
         for image in images
     ]
@@ -38,8 +50,12 @@ def to_html(
     # query <pdfpc-file> from typst file
     pdfpc = json.loads(
         typst.query(
-            input, "<pdfpc-file>", root=root, font_paths=font_paths, field="value",
-            sys_inputs=sys_inputs
+            input,
+            "<pdfpc-file>",
+            root=root,
+            font_paths=font_paths,
+            field="value",
+            sys_inputs=sys_inputs,
         )
     )
     if len(pdfpc) > 0:
@@ -62,7 +78,13 @@ def to_html(
     result = (
         jinja2.Environment(loader=jinja2.FileSystemLoader(FILE_PATH))
         .get_template("template.html.j2")
-        .render(page_iter=page_iter, images=images, idx2note=idx2note, pdfpc=pdfpc)
+        .render(
+            count=count,
+            page_iter=page_iter,
+            images=images,
+            idx2note=idx2note,
+            pdfpc=pdfpc,
+        )
     )
 
     # save to .html file
@@ -94,8 +116,12 @@ def to_pptx(
         print(f"Compiling typst source file {input}...")
 
     images = typst.compile(
-        input, root=root, font_paths=font_paths, format="png", ppi=ppi,
-        sys_inputs=sys_inputs
+        input,
+        root=root,
+        font_paths=font_paths,
+        format="png",
+        ppi=ppi,
+        sys_inputs=sys_inputs,
     )
     if type(images) is not list:
         images = [images]
@@ -103,8 +129,12 @@ def to_pptx(
     # query <pdfpc-file> from typst file
     pdfpc = json.loads(
         typst.query(
-            input, "<pdfpc-file>", root=root, font_paths=font_paths, field="value",
-            sys_inputs=sys_inputs
+            input,
+            "<pdfpc-file>",
+            root=root,
+            font_paths=font_paths,
+            field="value",
+            sys_inputs=sys_inputs,
         )
     )
     if len(pdfpc) > 0:
@@ -172,8 +202,14 @@ def to_pdf(input, output=None, root=None, font_paths=[], silent=False, sys_input
     output_dir = Path(output).parent
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
-    typst.compile(input, output=output, root=root, font_paths=font_paths, format="pdf",
-                  sys_inputs=sys_inputs)
+    typst.compile(
+        input,
+        output=output,
+        root=root,
+        font_paths=font_paths,
+        format="pdf",
+        sys_inputs=sys_inputs,
+    )
 
 
 def to_pdfpc(input, output=None, root=None, font_paths=[], silent=False, sys_inputs={}):
